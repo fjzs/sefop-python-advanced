@@ -85,7 +85,8 @@ jobs:
       # We install them fresh each run (no cached state from last run).
       # Note: We do NOT use `pip install -e .` in CI because pytest's pythonpath setting
       #       in pyproject.toml already adds src/ to sys.path. The editable install is for
-      #       development (so you can `import cli` from anywhere in your venv).
+      #       development (so you can `import frameworks_and_drivers.cli` from anywhere in
+      #       your venv).
       - name: Install dependencies
         run: pip install -r requirements.txt
 

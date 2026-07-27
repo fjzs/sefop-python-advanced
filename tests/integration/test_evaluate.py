@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-import cli
+from frameworks_and_drivers import cli
 
 _RESOURCES_DIR = Path(__file__).parent.parent / "resources"
 

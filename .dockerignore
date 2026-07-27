@@ -1,0 +1,13 @@
+# Keep the build context small and avoid baking local/dev-only state into the image.
+.venv/
+.git/
+.github/
+.idea/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+coverage.xml
+output/
+tests/

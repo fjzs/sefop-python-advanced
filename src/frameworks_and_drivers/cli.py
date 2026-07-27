@@ -1,14 +1,15 @@
 """Command-line interface for the knapsack optimizer.
 
-This is the delivery mechanism for the CLI. Its only job is to parse
-arguments and dispatch to whatever startup.py assembles — it never
-constructs a concrete adapter or use case itself; that composition-root
-responsibility belongs entirely to startup.py.
+This is one of two delivery mechanisms in frameworks_and_drivers/ (the other
+is web/, the HTTP API). Its only job is to parse arguments and dispatch to
+whatever startup.py assembles — it never constructs a concrete adapter or
+use case itself; that composition-root responsibility belongs entirely to
+startup.py.
 
 Run with:
-    python -m cli solve <request_id>
-    python -m cli solve-batch <data_folder>
-    python -m cli evaluate <request_id> <solution_path>
+    python -m frameworks_and_drivers.cli solve <request_id>
+    python -m frameworks_and_drivers.cli solve-batch <data_folder>
+    python -m frameworks_and_drivers.cli evaluate <request_id> <solution_path>
 """
 
 from __future__ import annotations

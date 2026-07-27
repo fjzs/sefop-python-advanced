@@ -1,0 +1,70 @@
+/* Minimal styling — this is a reference implementation, not a design system. */
+
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  color: #555;
+}
+
+fieldset {
+  margin-bottom: 1.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+label {
+  display: inline-block;
+  margin: 0.5rem 1rem 0.5rem 0;
+}
+
+input[type="number"],
+input[type="text"] {
+  width: 8rem;
+  padding: 0.25rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.25rem 0.5rem;
+}
+
+td input {
+  width: 100%;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+#solve-button {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+#result {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ccc;
+}
+
+.status-success {
+  color: #0a7a2f;
+}
+
+.status-failure {
+  color: #a10000;
+}

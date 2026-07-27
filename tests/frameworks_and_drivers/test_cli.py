@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-import cli
+from frameworks_and_drivers import cli
 
 
 def _write_request(data_root, request_id: str, payload: dict) -> None:

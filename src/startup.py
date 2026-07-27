@@ -7,23 +7,28 @@ same coin:
    rather than scattered as literal strings across the codebase. A data
    scientist forking this repository to point at their own data or output
    folder only needs to edit `Settings` here.
-2. Assemble the object graph the CLI needs (the `build_*` factory
-   functions). This is the only module in the codebase allowed to import
-   concrete adapters and construct concrete use cases directly. cli.py calls
-   these factory functions instead of constructing anything itself, so every
-   other module can depend on abstract ports (use_cases/ports/) without
-   knowing which concrete adapter ultimately gets wired in.
+2. Assemble the object graph each delivery mechanism needs (the `build_*`
+   factory functions — one family for the CLI, one for the web app). This is
+   the only module in the codebase allowed to import concrete adapters and
+   construct concrete use cases directly. frameworks_and_drivers/cli.py and
+   frameworks_and_drivers/web/ call these factory functions instead of
+   constructing anything themselves, so every other module can depend on
+   abstract ports (use_cases/ports/) without knowing which concrete adapter
+   ultimately gets wired in.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 
 from adapters.csv_result_writer import CsvResultWriter
 from adapters.directory_request_discovery import DirectoryRequestDiscovery
 from adapters.json_data_loader import JsonDataLoader
 from adapters.json_result_writer import JsonResultWriter
 from adapters.json_solution_loader import JsonSolutionLoader
+from adapters.web.in_memory_data_loader import InMemoryDataLoader
+from use_cases.ports.base_data_loader import BaseDataLoader
 from use_cases.ports.base_request_discovery import BaseRequestDiscovery
 from use_cases.ports.base_result_writer import BaseResultWriter
 from use_cases.solving.optimization.enumeration.enumeration_solution_provider import EnumerationSolutionProvider
@@ -56,6 +61,25 @@ class Settings:
     folder_path: str = "data"
     solver_name: str = "google_scip"
     output_folder_path: str = "output"
+
+
+@dataclass
+class WebSettings:
+    """Holds configurable values for the web delivery mechanism.
+
+    A separate type from Settings, not a reuse of it: the web flow never
+    reads a request from a file or writes a result to one, so it has no use
+    for folder_path/output_folder_path. Giving it its own dataclass means it
+    only carries fields it actually uses.
+
+    Attributes:
+        solver_name: Solver technology passed to the MIP SolutionProvider.
+            Read from the SOLVER_NAME environment variable (falling back to
+            "google_scip") so the Docker image can select a solver without a
+            code change.
+    """
+
+    solver_name: str = field(default_factory=lambda: os.environ.get("SOLVER_NAME", "google_scip"))
 
 
 def build_mip_solution_provider(settings: Settings) -> SolutionProvider:
@@ -192,3 +216,43 @@ def build_result_writer(settings: Settings, format_: str = "csv") -> BaseResultW
     if format_ == "json":
         return JsonResultWriter(output_folder_path=settings.output_folder_path)
     raise ValueError(f"Unknown format '{format_}'. Available: ['csv', 'json']")
+
+
+def build_web_solve_single_request(settings: WebSettings, request_loader: BaseDataLoader) -> SolveSingleRequest:
+    """Assemble a SolveSingleRequest use case for the web delivery mechanism.
+
+    Unlike build_solve_single_request (CLI), the web flow never reads a
+    request from disk: request_loader is the caller-supplied InMemoryDataLoader
+    that already holds the Request built from the HTTP request body, keyed by
+    a synthetic id the caller also generated. This factory only needs
+    solver_name from WebSettings, which it forwards to build_orchestrator via
+    a throwaway Settings instance — build_orchestrator only ever reads
+    solver_name off it, so the unused folder-path fields never surface.
+
+    Args:
+        settings: Web application settings; solver_name is forwarded to
+            build_orchestrator().
+        request_loader: The InMemoryDataLoader instance the caller already
+            stored the incoming Request in.
+
+    Returns:
+        A fully wired SolveSingleRequest, ready to solve the request_id
+        request_loader was given.
+    """
+    return SolveSingleRequest(
+        request_loader=request_loader,
+        orchestrator=build_orchestrator(Settings(solver_name=settings.solver_name)),
+    )
+
+
+def build_in_memory_data_loader() -> InMemoryDataLoader:
+    """Assemble a fresh InMemoryDataLoader for one web request.
+
+    A new instance per HTTP request (never shared or reused across requests)
+    keeps one submitted problem from ever being visible to another — see
+    adapters/web/in_memory_data_loader.py for why that matters.
+
+    Returns:
+        An empty InMemoryDataLoader, ready to have one Request stored in it.
+    """
+    return InMemoryDataLoader()

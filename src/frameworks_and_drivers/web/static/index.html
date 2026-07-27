@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SEFOP Knapsack Solver</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <h1>SEFOP Knapsack Solver</h1>
+    <p class="subtitle">
+      Given a budget and a weight limit, pick the combination of products that maximizes total calories.
+    </p>
+
+    <form id="solve-form">
+      <fieldset>
+        <legend>Limits</legend>
+        <label>
+          Max budget (USD)
+          <input type="number" id="max-budget-usd" step="0.01" min="0.01" value="10" required />
+        </label>
+        <label>
+          Max weight (kg)
+          <input type="number" id="max-weight-kg" step="0.01" min="0.01" value="5" required />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Products</legend>
+        <table id="products-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Price (USD)</th>
+              <th>Weight (kg)</th>
+              <th>Calories</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="products-body"></tbody>
+        </table>
+        <button type="button" id="add-product">+ Add product</button>
+      </fieldset>
+
+      <button type="submit" id="solve-button">Solve</button>
+    </form>
+
+    <section id="result" hidden>
+      <h2>Result</h2>
+      <div id="result-content"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

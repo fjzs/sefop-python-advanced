@@ -69,7 +69,7 @@ pythonpath = ["src", "."]
 # Add to Python's import path:
 #   - "src" → makes `from domain import Product` work in tests (inside src/domain/)
 #   - "." → makes `from tests.helpers import ...` work (tests/ is at project root)
-# Why needed: pytest.ini_options only affects pytest, not `python -m cli` directly.
+# Why needed: pytest.ini_options only affects pytest, not `python -m frameworks_and_drivers.cli` directly.
 # After `pip install -e .`, the pythonpath setting becomes optional (but keeps working).
 
 markers = [

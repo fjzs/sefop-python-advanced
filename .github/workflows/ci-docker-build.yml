@@ -1,0 +1,70 @@
+# =============================================================================
+# CI — Docker Build
+# =============================================================================
+# GitHub Actions workflow that builds the Dockerfile and smoke-tests the
+# resulting image by running it and hitting GET /health.
+#
+# This does NOT run the full test suite (that's ci-unit-tests.yml and
+# ci-integration-tests.yml) and does NOT push the image anywhere — it only
+# answers one question: "does the image built from this commit actually
+# start and serve traffic?" A Dockerfile bug (e.g. a missing shared library
+# for ortools/highspy on the slim base image, or a wrong CMD module path)
+# would otherwise only be caught by someone building it manually.
+#
+# This workflow runs on every push to main, and on every PR targeting main —
+# same triggers as the other two CI workflows, for the same reason (see
+# ci-unit-tests.yml's comment on why `push` is restricted to main).
+# =============================================================================
+
+name: CI — Docker Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build the image exactly the way a user following the README would.
+      - name: Build image
+        run: docker build -t sefop-web .
+
+      # Run it in the background (-d) so this step can move on to polling
+      # /health instead of blocking forever on the container's own logs.
+      - name: Run container
+        run: docker run -d --name sefop-web -p 8000:8000 sefop-web
+
+      # Poll instead of a fixed sleep: Uvicorn's startup time can vary
+      # (e.g. slower runners), and a fixed sleep is either too short
+      # (flaky) or wastes time on every run when it's not needed.
+      - name: Wait for /health
+        run: |
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://localhost:8000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Container did not become healthy in time"
+          docker logs sefop-web
+          exit 1
+
+      # Runs even if the health check above failed, so a broken build still
+      # leaves useful logs behind instead of just a red X.
+      - name: Show container logs
+        if: always()
+        run: docker logs sefop-web
+
+      - name: Stop container
+        if: always()
+        run: docker rm -f sefop-web

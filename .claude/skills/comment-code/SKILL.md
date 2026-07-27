@@ -48,30 +48,11 @@ Document unit, valid range, and the business rule encoded, directly above the co
 LOOK_AHEAD_THRESHOLD_HOURS = 72
 ```
 
-## SEFOP templates: teach the pattern
+## Explaining patterns for non-experts
 
-SEFOP template code must be readable by a data scientist who knows optimization but not software engineering. This adds one obligation on top of the rules above: **name and explain the software engineering pattern**, not just the code's job.
-
-- **Module docstring** states its `ROLE:` from the table below, `WHY THIS EXISTS`, and where sibling implementations live.
-
-  | Role | Directory | Purpose |
-  |------|-----------|---------|
-  | `Entity` | `src/domain/` | Pure data model, no dependencies, no solver imports. |
-  | `Value Object` | `src/domain/`, `src/use_cases/` (response DTOs) | Immutable, self-validating descriptor of a quantity/concept, or of a use case's outcome. |
-  | `Abstract Base Class` | `src/use_cases/ports/`, `src/use_cases/solving/optimization/solution_provider.py` | Abstract interface that use cases or the solving pipeline depend on. |
-  | `Orchestrator` | `src/use_cases/solving/orchestrator.py` | Sequences one user-facing operation end-to-end, no business logic of its own. |
-  | `Implementation` | `src/adapters/`, `src/use_cases/solving/optimization/<technology>/` | Concrete implementation of a port or a `SolutionProvider`, for one specific technology. |
+If this project's audience may not know software engineering (e.g. a domain expert who knows the problem but not the patterns), add one obligation on top of the rules above: **name and explain the software engineering pattern**, not just the code's job.
 
 - **Class docstrings** for ABC / Dependency Injection / frozen dataclass: one short paragraph naming and explaining the pattern (e.g., "this is a contract pattern — like a power socket shape"), then one paragraph on what *this* class does with it. State each pattern once per file; don't re-explain it in every method.
-- **Inline comments** explain the engineering choice's consequence (e.g., *why* a solver is injected rather than constructed: "so tests can pass a mock without a real HiGHS install — this is Dependency Injection").
-- **Math in the optimization layer**: state the formula in a comment next to the model-building expression so a reader can map math ↔ code.
-
-  ```python
-  # Constraint: ∑ price_i · x_i ≤ budget — total cost must not exceed max_budget_usd.
-  model.add_linear_constraint(
-      sum(product.price_usd * variables[name] for product, name in ...) <= request.max_budget_usd,
-      name="budget_limit",
-  )
-  ```
-
-- **Don't over-explain**: no comments on well-named code, no Python-syntax explanations, no re-deriving the architecture in every file. Test: would a reader who just finished a Python tutorial need this? If only someone who's never seen a for-loop would, skip it.
+- **Inline comments** explain the engineering choice's consequence (e.g., *why* a dependency is injected rather than constructed: "so tests can pass a mock without a real implementation — this is Dependency Injection").
+- **Domain-specific math or formulas**: state the formula in a comment next to the expression that implements it, so a reader can map the math to the code.
+- **Don't over-explain**: no comments on well-named code, no language-syntax explanations, no re-deriving the architecture in every file. Test: would a reader who just finished a language tutorial need this? If only someone who's never seen a for-loop would, skip it.
