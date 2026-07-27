@@ -19,7 +19,6 @@
 - [Code quality](#code-quality)
 - [Usage — CLI](#usage--cli)
 - [Usage — Web app](#usage--web-app)
-- [How it works](#how-it-works)
 
 ---
 
