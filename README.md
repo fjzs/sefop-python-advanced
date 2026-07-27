@@ -1,12 +1,25 @@
 # SEFOP - Python Advanced: Decision-Support System as a Web Application
 
-**Reference implementation of [SEFOP](https://github.com/sefop) for Python in a simplified manner**
+**Reference implementation of [SEFOP](https://github.com/sefop) for Python**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/)
 [![CI — Unit Tests](https://github.com/sefop/sefop-python/actions/workflows/ci-unit-tests.yml/badge.svg)](https://github.com/sefop/sefop-python/actions/workflows/ci-unit-tests.yml)
 [![CI — Integration Tests](https://github.com/sefop/sefop-python/actions/workflows/ci-integration-tests.yml/badge.svg)](https://github.com/sefop/sefop-python/actions/workflows/ci-integration-tests.yml)
 [![CI — Docker Build](https://github.com/sefop/sefop-python/actions/workflows/ci-docker-build.yml/badge.svg)](https://github.com/sefop/sefop-python/actions/workflows/ci-docker-build.yml)
+
+---
+
+## Table of contents
+
+- [Problem description](#problem-description)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Testing](#testing)
+- [Code quality](#code-quality)
+- [Usage — CLI](#usage--cli)
+- [Usage — Web app](#usage--web-app)
+- [How it works](#how-it-works)
 
 ---
 
@@ -65,7 +78,7 @@ The solver picks 4 apples — chocolate costs 10× more per calorie, so it never
 
 ---
 
-## Repository structure
+## Architecture
 
 This project follows **[Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)**'s four canonical rings —
 Entities (`domain/`), Use Cases (`use_cases/`), Interface Adapters (`adapters/`), and Frameworks & Drivers
@@ -73,6 +86,38 @@ Entities (`domain/`), Use Cases (`use_cases/`), Interface Adapters (`adapters/`)
 a single composition root (`startup.py`) that wires everything together. Two independent delivery mechanisms
 sit in the outermost ring: a CLI and a web app (FastAPI backend + a minimal static frontend), both calling
 into the same `use_cases/` and `startup.py` underneath.
+
+Uncle Bob's original diagram for the pattern:
+
+![Clean Architecture diagram by Robert C. Martin](https://blog.cleancoder.com/uncle-bob/images/2012-08-13-the-clean-architecture/CleanArchitecture.jpg)
+
+*Diagram by Robert C. Martin ("Uncle Bob"), from [The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html).*
+
+And how those same four rings map onto this repo's actual folders, with arrows pointing inward — the direction dependencies are allowed to point:
+
+```mermaid
+flowchart TD
+    subgraph FD["Frameworks & Drivers"]
+        CLI["frameworks_and_drivers/cli.py"]
+        WEB["frameworks_and_drivers/web/ (FastAPI + static frontend)"]
+    end
+    subgraph IA["Interface Adapters"]
+        ADAPTERS["adapters/ (JsonDataLoader, CsvResultWriter, ...)"]
+        WEBADAPT["adapters/web/ (Controller, Presenter, InMemoryDataLoader)"]
+    end
+    subgraph UC["Use Cases"]
+        USECASES["use_cases/ (SolveSingleRequest, SolveMultipleRequests, EvaluateSolutionForRequest)"]
+    end
+    subgraph EN["Entities"]
+        DOMAIN["domain/ (Product, Request, Recommendation)"]
+    end
+
+    CLI --> ADAPTERS
+    WEB --> WEBADAPT
+    ADAPTERS --> USECASES
+    WEBADAPT --> USECASES
+    USECASES --> DOMAIN
+```
 
 At the top level, the repo has three folders:
 
