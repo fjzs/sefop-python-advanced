@@ -209,14 +209,6 @@ or Pydantic. Both delivery mechanisms are thin — they parse input, call into
 `startup.py` to assemble what they need, and dispatch. Neither constructs a
 concrete adapter or use case itself.
 
-### `tests/`
-
-Mirrors `src/`'s structure — see the [Testing](#testing) section below.
-
-### `data/`
-
-Sample problem instances (input JSON), used as `python -m frameworks_and_drivers.cli solve <n>` where `<n>` is a `data/` subfolder.
-
 ---
 
 ## Installation
@@ -271,7 +263,8 @@ The web app has its own integration tests, `tests/frameworks_and_drivers/web/tes
 
 ## Code quality
 
-CI runs two checks before the test suite; both are fast, so run them locally before pushing to avoid a red PR.
+CI runs two checks before the test suite; both are fast, so run them locally before pushing to avoid a red PR. These checks are not comprehensive, there are other 
+code quality checks that are not executed here for simplicity (like a static code analysis tool as SonarQube).
 
 ### Format check (black)
 ```bash
@@ -321,77 +314,9 @@ configure a request (budget, weight limit, and a product table you can add/remov
 to) and a Solve button. `solve-batch` and `evaluate` aren't exposed over HTTP; use the
 CLI for those.
 
-### Run locally
-```bash
-uvicorn frameworks_and_drivers.web.main:app --reload
-```
-Then open `http://localhost:8000` in a browser. `GET /health` is a plain liveness check;
-`POST /solve` accepts a JSON body shaped like:
-```json
-{
-  "maxWeightKg": 2.0,
-  "maxBudgetUsd": 10.0,
-  "products": [
-    { "name": "Apple", "priceUsd": 1.00, "weightKg": 0.50, "calories": 100 }
-  ]
-}
-```
-and returns `{"status": "SUCCESS" | "FAILURE", "message": ..., "recommendation": ...}` —
-malformed input (e.g. a negative budget) gets FastAPI's standard `422` response;
-input that's well-formed but violates a domain rule (e.g. duplicate product names)
-comes back as a normal `200` with `status: "FAILURE"`, the same shape an unsolvable
-request already uses. The solver technology can be picked with the `SOLVER_NAME`
-environment variable (`highs` or `google_scip`, same options as the CLI's `Settings.solver_name`;
-defaults to `google_scip`).
-
 ### Run via Docker
 ```bash
 docker build -t sefop-web .
 docker run -p 8000:8000 sefop-web
 ```
-Then open `http://localhost:8000` the same way. `Dockerfile` is a single-stage build on
-`python:3.12-slim`; see its comments for why (no multi-stage split, single Uvicorn
-process, no Gunicorn).
-
----
-
-## How it works
-
-This project follows **Clean Architecture**'s four rings with full dependency
-inversion — every collaborator is constructor-injected, and `startup.py` is
-the single place concrete objects get wired together:
-
-1. **`domain/`** — Pure business logic (Product, Request, Recommendation) with no external dependencies.
-2. **`use_cases/`** — Application rules, expressed as three independent use case classes (no shared base — their signatures genuinely differ):
-   - **`SolveSingleRequest`** — load one request and run it through the solving pipeline.
-   - **`SolveMultipleRequests`** — discover every request in a folder (via `BaseRequestDiscovery`) and solve each one with a composed `SolveSingleRequest`.
-   - **`EvaluateSolutionForRequest`** — check whether a user-supplied candidate quantity dict is feasible for a request, with no solver involved: it builds a `Recommendation` and lets its existing budget/weight validation do the feasibility check.
-
-   Abstract ports the use cases depend on (`BaseDataLoader`, `BaseResultWriter`, `BaseRequestDiscovery`, `BaseSolutionLoader`) live in `use_cases/ports/`.
-
-   The solving pipeline itself lives in **`use_cases/solving/`** — an internal implementation detail of `SolveSingleRequest`, not a top-level architecture layer:
-   - **`solving/orchestrator.py`** — Pipeline coordinator: runs preprocessing → picks a `SolutionProvider` → runs postprocessing. Picks based on problem size: a small enough combinatorial search space routes to brute-force enumeration; otherwise a small enough product count routes to the exact MIP solver; anything larger falls back to the fast heuristic.
-   - **`solving/preprocessing/`** — Filters out products that can never be selected (individually infeasible).
-   - **`solving/optimization/`** — `SolutionProvider` (the shared ABC: `solve(data, output_dir) -> Recommendation | None`) and four implementations:
-     - **`enumeration/enumeration_solution_provider.py`** — Brute-force exact solver: tries every feasible product-quantity combination and keeps the best. Used both as a real, fast solving path for small requests and as the ground-truth oracle other providers' tests are checked against.
-     - **`mip_highs/mip_highs_solution_provider.py`** — Exact MIP solver, `MipHighsSolutionProvider`. Builds variables/constraints/objective directly against `highspy` and solves — no intermediate solver-agnostic model. This is deliberately self-contained per solver technology (rather than sharing a formulation layer across technologies) so each solver technology can be added as its own independent `SolutionProvider` implementation without touching the others.
-     - **`mip_google/mip_google_scip_solution_provider.py`** — A second exact MIP solver, `MipGoogleScipSolutionProvider`, built against Google OR-Tools' [MathOpt](https://developers.google.com/optimization/math_opt) API configured for the GSCIP (SCIP) backend. Same formulation as `MipHighsSolutionProvider`, expressed with MathOpt's expression-based model-building API instead of HiGHS's index/matrix-based one. MathOpt's Python API has no LP/MPS exporter, so its `output_dir` debug artifact is `model.pbtxt` (the model dumped as protobuf text) rather than `model.lp`.
-     - **`heuristic/heuristic_solution_provider.py`** — Fast, approximate greedy solution for large problems.
-
-     `SolutionProvider` is an internal solving-pipeline contract, separate from the public ports in `use_cases/ports/` — `startup.py` decides which concrete `SolutionProvider` to use for the MIP slot (via `Settings.solver_name`), but `Orchestrator` itself only ever depends on the abstract type.
-   - **`solving/postprocessing/`** — Refines the recommendation (e.g., sorts products by quantity).
-3. **`adapters/`** — All I/O: concrete implementations of the `use_cases/ports/` interfaces (`JsonDataLoader`, `CsvResultWriter`/`JsonResultWriter`, `DirectoryRequestDiscovery`, `JsonSolutionLoader`), plus `adapters/web/` for the web delivery mechanism:
-   - **`web/in_memory_data_loader.py`** — `BaseDataLoader` backed by an in-process dict instead of a file. The web flow has no file to read — the HTTP request body already *is* the data — so the controller stores the just-built `Request` here under a synthetic id and `SolveSingleRequest` loads it back exactly like it would from `JsonDataLoader`, unmodified.
-   - **`web/controller.py`** — Translates a raw (already-validated) payload dict into a domain `Request`, stores it via the injected `InMemoryDataLoader`, and calls `SolveSingleRequest.solve()`. Catches `ValueError` from `Request`/`Product` construction (a domain invariant Pydantic's field-level validation can't express, e.g. "no duplicate product names") and turns it into a normal `FAILURE` response instead of letting it propagate as an unhandled exception.
-   - **`web/presenter.py`** — Reshapes an `OptimizationResponse` into plain data (dict/list/str/float/int) the web framework can serialize — `Recommendation.quantities` is a `dict[Product, int]`, and `Product` isn't JSON-serializable on its own.
-
-   Both `controller.py` and `presenter.py` take no dependency on Pydantic or FastAPI — those belong to `frameworks_and_drivers/web/`, one ring further out. This keeps Clean Architecture's dependency rule intact: outer rings may depend on inner ones, never the reverse.
-4. **`startup.py`** — Configuration (`Settings` for the CLI, `WebSettings` for the web app) plus the composition root: factory functions that assemble the full object graph for either delivery mechanism, including resolving `solver_name` to a concrete solver.
-5. **`frameworks_and_drivers/`** — The outermost ring; both delivery mechanisms call into `startup.py` and dispatch, never constructing a concrete adapter or use case themselves:
-   - **`cli.py`** — Parses arguments (argparse) and dispatches.
-   - **`web/main.py`** — The FastAPI app instance; what `uvicorn` points at.
-   - **`web/routes.py`** — `POST /solve` and `GET /health`. `solve` is a plain `def`, not `async def`, so Starlette runs the CPU-bound solver call in a worker thread instead of blocking the event loop that serves every other connection (including the static frontend).
-   - **`web/schemas.py`** — Pydantic request/response models. Field constraints (`gt=0`, `min_length=1`) reject malformed input with a standard `422` before the controller ever runs; JSON keys are camelCase (`maxWeightKg`, `priceUsd`, ...) via Pydantic aliases, matching the camelCase-in/snake_case-domain convention `adapters/json_data_loader.py` already established.
-   - **`web/static/`** — The frontend: plain HTML/CSS/vanilla JS, no templating engine, no build step. `app.js` builds the product-row table, POSTs to `/solve`, and renders the response.
-
----
+Then open `http://localhost:8000`.
