@@ -15,7 +15,7 @@
 - [Problem description](#problem-description)
 - [Architecture](#architecture)
 - [Installation](#installation)
-- [Testing](#testing)
+- [Testing](#Testing)
 - [Code quality](#code-quality)
 - [Usage — CLI](#usage--cli)
 - [Usage — Web app](#usage--web-app)
