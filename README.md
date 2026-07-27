@@ -93,23 +93,27 @@ Uncle Bob's original diagram for the pattern:
 
 *Diagram by Robert C. Martin ("Uncle Bob"), from [The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html).*
 
-And how those same four rings map onto this repo's actual folders, with arrows pointing inward — the direction dependencies are allowed to point:
+And how those same four rings map onto this repo's actual folders. Arrows point inward — the
+direction dependencies are allowed to point — and the diagram is laid out top-to-bottom by
+policy level: the **high-level policy** (Entities, the innermost ring) is at the **top**, and
+the **low-level detail** (Frameworks & Drivers, the outermost ring) is at the **bottom**,
+mirroring Uncle Bob's point that source code dependencies should point from detail toward policy:
 
 ```mermaid
-flowchart TD
-    subgraph FD["Frameworks & Drivers"]
-        CLI["frameworks_and_drivers/cli.py"]
-        WEB["frameworks_and_drivers/web/ (FastAPI + static frontend)"]
+flowchart BT
+    subgraph EN["Entities (high-level policy)"]
+        DOMAIN["domain/ (Product, Request, Recommendation)"]
+    end
+    subgraph UC["Use Cases"]
+        USECASES["use_cases/ (SolveSingleRequest, SolveMultipleRequests, EvaluateSolutionForRequest)"]
     end
     subgraph IA["Interface Adapters"]
         ADAPTERS["adapters/ (JsonDataLoader, CsvResultWriter, ...)"]
         WEBADAPT["adapters/web/ (Controller, Presenter, InMemoryDataLoader)"]
     end
-    subgraph UC["Use Cases"]
-        USECASES["use_cases/ (SolveSingleRequest, SolveMultipleRequests, EvaluateSolutionForRequest)"]
-    end
-    subgraph EN["Entities"]
-        DOMAIN["domain/ (Product, Request, Recommendation)"]
+    subgraph FD["Frameworks & Drivers (low-level detail)"]
+        CLI["frameworks_and_drivers/cli.py"]
+        WEB["frameworks_and_drivers/web/ (FastAPI + static frontend)"]
     end
 
     CLI --> ADAPTERS
