@@ -1,0 +1,12 @@
+{
+  "requestId": "3",
+  "maxWeightKg": 30.0,
+  "maxBudgetUsd": 50.0,
+  "products": [
+    { "name": "rice",       "priceUsd": 1.00, "weightKg": 1.00, "calories": 130 },
+    { "name": "beans",      "priceUsd": 2.00, "weightKg": 1.50, "calories": 120 },
+    { "name": "oats",       "priceUsd": 1.50, "weightKg": 2.00, "calories": 150 },
+    { "name": "peanuts",    "priceUsd": 3.00, "weightKg": 1.00, "calories": 560 },
+    { "name": "dried_fruit","priceUsd": 2.50, "weightKg": 2.50, "calories": 290 }
+  ]
+}

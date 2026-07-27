@@ -1,0 +1,8 @@
+{
+  "requestId": "quantity_greater_than_one",
+  "maxWeightKg": 10.0,
+  "maxBudgetUsd": 10.0,
+  "products": [
+    { "name": "cracker", "priceUsd": 1.00, "weightKg": 1.0, "calories": 50 }
+  ]
+}

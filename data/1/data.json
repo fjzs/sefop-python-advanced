@@ -1,0 +1,8 @@
+{
+  "requestId": "1",
+  "maxWeightKg": 1.0,
+  "maxBudgetUsd": 5.0,
+  "products": [
+    { "name": "banana", "priceUsd": 1.00, "weightKg": 0.50, "calories": 100 }
+  ]
+}

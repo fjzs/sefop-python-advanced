@@ -1,0 +1,9 @@
+{
+  "requestId": "multiple_optimal_solutions",
+  "maxWeightKg": 1.0,
+  "maxBudgetUsd": 2.0,
+  "products": [
+    { "name": "cookie_a", "priceUsd": 2.00, "weightKg": 1.0, "calories": 100 },
+    { "name": "cookie_b", "priceUsd": 2.00, "weightKg": 1.0, "calories": 100 }
+  ]
+}

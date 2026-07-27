@@ -1,0 +1,8 @@
+{
+  "requestId": "infeasible",
+  "maxWeightKg": 1.0,
+  "maxBudgetUsd": 1.0,
+  "products": [
+    { "name": "premium_snack", "priceUsd": 5.00, "weightKg": 0.5, "calories": 100 }
+  ]
+}

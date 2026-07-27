@@ -1,0 +1,10 @@
+{
+  "requestId": "feasible_unique_optimum",
+  "maxWeightKg": 5.0,
+  "maxBudgetUsd": 10.0,
+  "products": [
+    { "name": "protein_bar", "priceUsd": 4.00, "weightKg": 2.0, "calories": 200 },
+    { "name": "chips", "priceUsd": 3.00, "weightKg": 1.0, "calories": 150 },
+    { "name": "soda", "priceUsd": 6.00, "weightKg": 3.0, "calories": 140 }
+  ]
+}

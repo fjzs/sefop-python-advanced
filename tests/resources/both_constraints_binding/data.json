@@ -1,0 +1,9 @@
+{
+  "requestId": "both_constraints_binding",
+  "maxWeightKg": 6.0,
+  "maxBudgetUsd": 9.0,
+  "products": [
+    { "name": "x_item", "priceUsd": 2.00, "weightKg": 1.0, "calories": 30 },
+    { "name": "y_item", "priceUsd": 1.00, "weightKg": 2.0, "calories": 25 }
+  ]
+}

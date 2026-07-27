@@ -1,0 +1,92 @@
+# =============================================================================
+# CI — Code Style
+# =============================================================================
+# GitHub Actions workflow for continuous integration (formatting and type checks).
+#
+# This workflow runs black (format check) and mypy (static type check) as their
+# own job, separate from ci-unit-tests.yml. Why separate rather than steps in
+# the unit-tests job?
+#   - Jobs in the same workflow run in parallel by default (no `needs` between
+#     them), and jobs in different workflows are just as independent — so this
+#     runs alongside unit tests instead of blocking them.
+#   - Steps within a single job run sequentially and stop at the first failure.
+#     If black/mypy were steps inside the unit-tests job, a formatting nit would
+#     prevent pytest from running at all, hiding whether the tests themselves
+#     pass. As a separate workflow, a style failure and the test results are
+#     always reported independently.
+#
+# This workflow runs on every push to main, and on every PR targeting main —
+# same triggers as ci-unit-tests.yml and ci-integration-tests.yml.
+# =============================================================================
+
+# What is this workflow called in the GitHub UI?
+name: CI — Code Style
+
+# When should this workflow run?
+# Same triggers as ci-unit-tests.yml: push to main, and every PR targeting main.
+#
+# Why is push restricted to main instead of every branch?
+#   A feature branch with an open PR satisfies BOTH `push` (any push to that
+#   branch) and `pull_request` (the PR's synchronize event) for the same
+#   commit. Without this restriction, every push to a branch that already
+#   has a PR open would trigger this workflow twice for the same commit.
+#   Restricting `push` to main means: pushes to main (e.g. after a merge)
+#   trigger it once via `push`, and commits on a feature branch trigger it
+#   once via `pull_request` — never both for the same commit.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# If a new commit is pushed to the same branch/PR while a previous run is
+# still in progress, cancel the older run instead of letting both finish.
+# Without this, quick successive pushes (or a force-push) would queue up
+# redundant runs for commits that are already superseded.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# What are the jobs in this workflow?
+jobs:
+  # This job's name (shows in the GitHub UI; used in status checks)
+  code-style:
+    # Run on a fresh Ubuntu machine, same as the other workflows
+    runs-on: ubuntu-latest
+
+    # A job is a sequence of steps. Each step runs sequentially (one after another).
+    steps:
+      # Step 1: Fetch the code from the repository
+      # Why is this needed? The runner doesn't have code yet — it starts empty.
+      # This action checks out the current commit (on push) or PR head (on PR).
+      - uses: actions/checkout@v4
+        # @v4 = use major version 4 (patches are automatic; breaking changes require manual upgrade)
+        # Pinning major versions is standard: it prevents unexpected behavior from breaking changes
+
+      # Step 2: Set up Python on the runner
+      # Why? The runner has a default Python (often outdated), so we install the one we want.
+      # This ensures every CI run uses Python 3.12, matching our project's requirement.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Step 3: Install all dependencies
+      # black and mypy only need themselves installed, but requirements.txt is the
+      # single source of truth for pinned versions, so we install everything from
+      # it rather than duplicating version numbers in this workflow.
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Step 4: Run black (format check)
+      # `--check` asks black to verify formatting without rewriting files: it exits non-zero
+      # if any file under src/ or tests/ would be reformatted, but leaves the files untouched.
+      # Configuration (line-length, target Python version) lives in pyproject.toml's
+      # [tool.black] section, so this command and a local `black src tests` agree on the
+      # same rules. If this step fails, run `black src tests` locally and push the result.
+      - name: Run black (format check)
+        run: black --check src tests
+
+      # Step 5: Run mypy (static type check)
+      # Configuration lives in pyproject.toml's [tool.mypy] section.
+      - name: Run mypy (static type check)
+        run: mypy

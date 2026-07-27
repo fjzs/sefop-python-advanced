@@ -1,0 +1,337 @@
+{
+  "requestId": "large_instance_triggers_heuristic",
+  "maxWeightKg": 3.0,
+  "maxBudgetUsd": 20.0,
+  "products": [
+    {
+      "name": "product_00",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 10
+    },
+    {
+      "name": "product_01",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 11
+    },
+    {
+      "name": "product_02",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 12
+    },
+    {
+      "name": "product_03",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 13
+    },
+    {
+      "name": "product_04",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 14
+    },
+    {
+      "name": "product_05",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 15
+    },
+    {
+      "name": "product_06",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 16
+    },
+    {
+      "name": "product_07",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 17
+    },
+    {
+      "name": "product_08",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 18
+    },
+    {
+      "name": "product_09",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 19
+    },
+    {
+      "name": "product_10",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 20
+    },
+    {
+      "name": "product_11",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 21
+    },
+    {
+      "name": "product_12",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 22
+    },
+    {
+      "name": "product_13",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 23
+    },
+    {
+      "name": "product_14",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 24
+    },
+    {
+      "name": "product_15",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 25
+    },
+    {
+      "name": "product_16",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 26
+    },
+    {
+      "name": "product_17",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 27
+    },
+    {
+      "name": "product_18",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 28
+    },
+    {
+      "name": "product_19",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 29
+    },
+    {
+      "name": "product_20",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 30
+    },
+    {
+      "name": "product_21",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 31
+    },
+    {
+      "name": "product_22",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 32
+    },
+    {
+      "name": "product_23",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 33
+    },
+    {
+      "name": "product_24",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 34
+    },
+    {
+      "name": "product_25",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 35
+    },
+    {
+      "name": "product_26",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 36
+    },
+    {
+      "name": "product_27",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 37
+    },
+    {
+      "name": "product_28",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 38
+    },
+    {
+      "name": "product_29",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 39
+    },
+    {
+      "name": "product_30",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 40
+    },
+    {
+      "name": "product_31",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 41
+    },
+    {
+      "name": "product_32",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 42
+    },
+    {
+      "name": "product_33",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 43
+    },
+    {
+      "name": "product_34",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 44
+    },
+    {
+      "name": "product_35",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 45
+    },
+    {
+      "name": "product_36",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 46
+    },
+    {
+      "name": "product_37",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 47
+    },
+    {
+      "name": "product_38",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 48
+    },
+    {
+      "name": "product_39",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 49
+    },
+    {
+      "name": "product_40",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 50
+    },
+    {
+      "name": "product_41",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 51
+    },
+    {
+      "name": "product_42",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 52
+    },
+    {
+      "name": "product_43",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 53
+    },
+    {
+      "name": "product_44",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 54
+    },
+    {
+      "name": "product_45",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 55
+    },
+    {
+      "name": "product_46",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 56
+    },
+    {
+      "name": "product_47",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 57
+    },
+    {
+      "name": "product_48",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 58
+    },
+    {
+      "name": "product_49",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 59
+    },
+    {
+      "name": "product_50",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 60
+    },
+    {
+      "name": "product_51",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 61
+    },
+    {
+      "name": "product_52",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 62
+    },
+    {
+      "name": "product_53",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 63
+    },
+    {
+      "name": "product_54",
+      "priceUsd": 1.0,
+      "weightKg": 0.1,
+      "calories": 64
+    }
+  ]
+}

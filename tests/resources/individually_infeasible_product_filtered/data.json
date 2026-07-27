@@ -1,0 +1,10 @@
+{
+  "requestId": "individually_infeasible_product_filtered",
+  "maxWeightKg": 2.0,
+  "maxBudgetUsd": 5.0,
+  "products": [
+    { "name": "affordable_snack", "priceUsd": 3.00, "weightKg": 1.0, "calories": 120 },
+    { "name": "luxury_item", "priceUsd": 50.00, "weightKg": 0.5, "calories": 999 },
+    { "name": "heavy_item", "priceUsd": 1.00, "weightKg": 5.0, "calories": 500 }
+  ]
+}

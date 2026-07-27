@@ -1,0 +1,171 @@
+# =============================================================================
+# pyproject.toml — Python project configuration for SEFOP Python Starter
+# =============================================================================
+# This file tells Python how to build, test, and run this project.
+# It replaces the old setup.py, setup.cfg, and requirements.txt approach.
+#
+# Key concepts:
+# - [build-system]: How to package this project for distribution
+# - [project]: Metadata (name, version, dependencies)
+# - [tool.*]: Configuration for specific tools (pytest, black, setuptools)
+# =============================================================================
+
+# =============================================================================
+# [build-system] — How Python builds this package
+# =============================================================================
+# When you run `pip install .` or `pip install -e .`, Python uses this section
+# to know how to build the package from source.
+[build-system]
+requires = ["setuptools>=68"]
+# setuptools: the standard Python packaging tool, bundled with pip
+# It knows how to find your code, create a .whl file, and install it.
+build-backend = "setuptools.build_meta"
+# build_meta: tells setuptools to use the modern PEP 517 build backend
+
+# =============================================================================
+# [project] — Package metadata
+# =============================================================================
+# This section describes YOUR project so Python knows what to install.
+[project]
+name = "sefop-python-starter"
+# The name people use when they `pip install sefop-python-starter`.
+# Python converts spaces to hyphens; internally it becomes "sefop_python_starter".
+
+version = "1.0.0"
+# Semantic versioning: MAJOR.MINOR.PATCH
+# - MAJOR: breaking changes (old code stops working)
+# - MINOR: new features (backwards compatible)
+# - PATCH: bug fixes (no new features)
+
+requires-python = ">=3.12"
+# This project requires Python 3.12 or newer.
+# If someone with Python 3.11 tries `pip install .`, pip will reject it.
+
+# =============================================================================
+# [tool.setuptools] — Configuration for the setuptools package builder
+# =============================================================================
+# Setuptools needs to know where your source code lives.
+[tool.setuptools]
+package-dir = {"" = "src"}
+# "Where is the root package?"
+# Answer: in the "src/" folder, not at the project root.
+# This is why we can do `from domain import Product` instead of `from src.domain ...`
+
+[tool.setuptools.packages.find]
+where = ["src"]
+# "Look in the src/ folder and automatically find all Python packages."
+# A package is any folder with an __init__.py file.
+# This discovers: domain/, services/, engine/, and all nested subfolders.
+
+# =============================================================================
+# [tool.pytest.ini_options] — Configuration for the pytest test runner
+# =============================================================================
+# Pytest needs to know where your tests are and what Python paths to use.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# "Look for tests in the tests/ folder, not elsewhere."
+
+pythonpath = ["src", "."]
+# Add to Python's import path:
+#   - "src" → makes `from domain import Product` work in tests (inside src/domain/)
+#   - "." → makes `from tests.helpers import ...` work (tests/ is at project root)
+# Why needed: pytest.ini_options only affects pytest, not `python -m cli` directly.
+# After `pip install -e .`, the pythonpath setting becomes optional (but keeps working).
+
+markers = [
+    "integration: marks tests that require an external solver (deselect with '-m not integration')",
+]
+# A marker is a pytest label you can add to tests with @pytest.mark.integration.
+# This lets you run subsets of tests:
+#   pytest                          # run all tests
+#   pytest -m integration           # run ONLY integration tests (slower)
+#   pytest -m "not integration"     # run ONLY unit tests (faster)
+# Why separate them: integration tests might be slower, and you may want them to separate them from your unit tests (which should be fast)
+
+# =============================================================================
+# [tool.black] — Configuration for the black code formatter
+# =============================================================================
+# Black automatically formats Python code to look consistent.
+# Run: `black src tests` to format all your code.
+[tool.black]
+line-length = 120
+# "Don't let any line get longer than this parameter."
+# This is black's default; shorter lines are easier to read.
+
+target-version = ["py312"]
+# "I'm writing code for Python 3.12."
+# Black will use Python 3.12 syntax (no syntax from 3.13 that 3.12 doesn't support).
+
+# =============================================================================
+# [tool.mypy] — Configuration for the mypy static type checker
+# =============================================================================
+# Every function in src/ is already annotated with type hints (see the comment-code
+# skill, section 5), but nothing checks that those hints are correct or complete until
+# now. Mypy reads them and verifies they're internally consistent - e.g. that a function
+# annotated to return `Product` never actually returns `None`.
+# Run: `mypy` (uses this config automatically).
+[tool.mypy]
+python_version = "3.12"
+# Check against the same Python version this project targets (see requires-python above).
+
+mypy_path = "src"
+explicit_package_bases = true
+# This project uses a "src layout": [tool.setuptools] above maps package-dir "" to "src",
+# so code imports as `from domain.product import Product`, not
+# `from src.domain.product import Product`. src/__init__.py also exists, so without this
+# setting mypy would walk upward looking for the topmost folder with an __init__.py (which
+# is src/ itself) and prefix every module with "src.", producing import errors that don't
+# match how the code is actually run. mypy_path + explicit_package_bases tells mypy to treat
+# src/ as the root instead - the same role pytest's `pythonpath = ["src", "."]" plays below.
+
+files = ["src"]
+# Only type-check the framework code, not tests/. Tests commonly use loose typing
+# (fixtures, parametrize, mocks) that would add noise without much benefit here.
+
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+# Every function must have a complete set of type hints - no partially-annotated
+# signatures. This turns the project's existing type-hint convention into an enforced rule.
+
+warn_return_any = true
+# Flags a function whose return type annotation is a concrete type (e.g. `-> Product`) but
+# whose actual returned value mypy can only infer as `Any` - usually a sign the annotation,
+# or an upstream call it depends on, is wrong.
+
+warn_unused_ignores = true
+# Flags `# type: ignore` comments that are no longer suppressing any real error, so stale
+# ignores get cleaned up instead of silently accumulating.
+
+[[tool.mypy.overrides]]
+module = "highspy.*"
+ignore_missing_imports = true
+# highspy is a compiled C++ extension (the HiGHS solver's Python bindings) and ships no type
+# stubs, so mypy cannot see its types. Without this override, mypy fails with "Cannot find
+# implementation or library stub for module" every time highspy is imported.
+
+[[tool.mypy.overrides]]
+module = "ortools.*"
+ignore_missing_imports = true
+# ortools (Google OR-Tools, used by MipGoogleScip) ships no py.typed marker, so mypy can't see
+# its types even though the package itself has annotations. google.protobuf (also imported by
+# MipGoogleScip, to dump MathOpt's model proto) is covered separately by the types-protobuf
+# stub package instead of this override, since real stubs exist for it.
+
+# =============================================================================
+# Why this structure? (for data scientists new to Python packaging)
+# =============================================================================
+# Before pyproject.toml, projects used separate files:
+#   - setup.py (how to build)
+#   - setup.cfg (package metadata)
+#   - requirements.txt (dependencies to pip install)
+#   - tox.ini or pytest.ini (test config)
+#   - .flake8 (linting config)
+# This was messy and hard to understand.
+#
+# pyproject.toml unifies everything into ONE file using TOML (a human-friendly format).
+# All Python tools know to look here first.
+#
+# After you run `pip install -e .` once, Python can find your code anywhere in your
+# virtual environment. No PYTHONPATH, no sys.path manipulation, no magic.
+# This is how real Python projects work.
+# =============================================================================

@@ -1,0 +1,9 @@
+{
+  "requestId": "2",
+  "maxWeightKg": 2.0,
+  "maxBudgetUsd": 10.0,
+  "products": [
+    { "name": "apple",     "priceUsd": 1.00, "weightKg": 0.50, "calories": 100 },
+    { "name": "chocolate", "priceUsd": 5.00, "weightKg": 1.00, "calories": 50  }
+  ]
+}

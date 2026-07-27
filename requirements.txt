@@ -1,0 +1,7 @@
+black==26.5.1
+highspy==1.14.0
+mypy==2.1.0
+ortools==9.15.6755
+pytest==9.0.3
+pytest-cov==7.1.0
+types-protobuf==7.34.1.20260518
