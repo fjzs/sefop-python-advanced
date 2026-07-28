@@ -59,11 +59,6 @@ jobs:
     # This guarantees no leftover state from previous runs
     runs-on: ubuntu-latest
 
-    # Permissions needed for this job
-    # code-quality: write — required to upload code coverage results to GitHub
-    permissions:
-      code-quality: write
-
     # A job is a sequence of steps. Each step runs sequentially (one after another).
     steps:
       # Step 1: Fetch the code from the repository
@@ -99,25 +94,12 @@ jobs:
       #
       # Coverage reporting:
       #   - --cov=src: measure only the src/ directory (where the actual code lives)
-      #   - --cov-report=xml: generate Cobertura XML for GitHub's code coverage upload
+      #   - --cov-report=xml: generate Cobertura XML (kept for future local/tooling use)
       #   - --cov-report=html: generate HTML report as a workflow artifact for detailed inspection
       - name: Run unit tests with coverage
         run: pytest -m "not integration" --cov=src --cov-report=xml --cov-report=html
 
-      # Step 5: Upload coverage to GitHub
-      # Uses the GitHub code coverage action to upload the Cobertura XML report.
-      # On PRs, the github-code-quality bot posts a comment with aggregate coverage %
-      # and per-file breakdowns, making it easy to spot coverage gaps.
-      # Only upload on PRs or pushes to main, since GitHub's API rejects uploads from
-      # other branches without a PR context (HTTP 400).
-      - name: Upload coverage to GitHub
-        uses: actions/upload-code-coverage@v1
-        if: always() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
-        with:
-          file: coverage.xml
-          language: python
-
-      # Step 6: Upload HTML coverage report as artifact
+      # Step 5: Upload HTML coverage report as artifact
       # The HTML report is accessible from the Actions tab for detailed inspection.
       # Useful for: understanding which lines aren't covered, finding test gaps.
       - name: Upload HTML coverage report
