@@ -75,7 +75,14 @@
             </thead>
             <tbody id="products-body"></tbody>
           </table>
-          <button type="button" id="add-product">+ Add product</button>
+          <div class="product-actions">
+            <button type="button" id="add-product">+ Add product</button>
+            <div class="generate-controls">
+              <label for="generate-count">Products to generate</label>
+              <input type="number" id="generate-count" min="1" max="200" step="1" value="10" />
+              <button type="button" id="generate-products">Generate</button>
+            </div>
+          </div>
         </fieldset>
 
         <button type="submit" id="solve-button">Solve</button>
