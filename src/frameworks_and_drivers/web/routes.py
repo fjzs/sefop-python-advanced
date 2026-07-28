@@ -10,6 +10,7 @@ WHY THIS EXISTS:
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import APIRouter
@@ -17,6 +18,8 @@ from fastapi import APIRouter
 import startup
 from adapters.web import controller, presenter
 from frameworks_and_drivers.web.schemas import SolveRequestSchema, SolveResponseSchema
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -40,10 +43,11 @@ def solve(payload: SolveRequestSchema) -> dict[str, Any]:
     OR-Tools, both synchronous) never blocks the event loop that serves every
     other connection, including the static frontend files.
     """
+    logger.info("\n\nReceived /solve request with %d product(s)", len(payload.products))
+
     # A fresh loader (and the use case wired to it) per call, never reused
     # across requests — see adapters/web/in_memory_data_loader.py.
     data_loader = startup.build_in_memory_data_loader()
     solve_single_request = startup.build_web_solve_single_request(_settings, data_loader)
-
     response = controller.handle_solve(payload.model_dump(by_alias=False), data_loader, solve_single_request)
     return presenter.present_solve_response(response)

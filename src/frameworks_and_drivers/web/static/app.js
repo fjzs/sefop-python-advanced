@@ -24,6 +24,39 @@ function addProductRow(values) {
 
 document.getElementById("add-product").addEventListener("click", () => addProductRow());
 
+// Capacity dashboard: reports the *last solved* recommendation, not the
+// draft form. It only ever gets new numbers from handleSubmit's SUCCESS
+// branch below, so editing the limits or the product rows never moves it.
+const capacityCaloriesEl = document.getElementById("capacity-calories");
+const gauges = {
+  budget: {
+    fill: document.getElementById("gauge-budget-fill"),
+    value: document.getElementById("gauge-budget-value"),
+    pair: (used, limit) => `$${used.toFixed(2)} / $${limit.toFixed(2)}`,
+  },
+  weight: {
+    fill: document.getElementById("gauge-weight-fill"),
+    value: document.getElementById("gauge-weight-value"),
+    pair: (used, limit) => `${used.toFixed(2)} / ${limit.toFixed(2)} kg`,
+  },
+};
+
+function setGauge(gauge, used, limit) {
+  // A successful Recommendation can never exceed its own request's limit
+  // (see domain/recommendation.py's __post_init__ check), so used/limit is
+  // always <= 1 here; the cap is just a guard against float rounding at
+  // exactly 100%.
+  const percent = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
+  gauge.fill.style.width = `${percent}%`;
+  gauge.value.textContent = gauge.pair(used, limit);
+}
+
+function updateCapacityDashboard(recommendation, limits) {
+  capacityCaloriesEl.textContent = `${recommendation.totalCalories} kcal`;
+  setGauge(gauges.budget, recommendation.totalCostUsd, limits.maxBudgetUsd);
+  setGauge(gauges.weight, recommendation.totalWeightKg, limits.maxWeightKg);
+}
+
 function collectPayload() {
   const products = Array.from(productsBody.querySelectorAll("tr")).map((row) => ({
     name: row.querySelector(".product-name").value,
@@ -40,21 +73,18 @@ function collectPayload() {
 
 function renderRecommendation(recommendation) {
   const rows = recommendation.items
-    .map(
-      (item) =>
-        `<tr><td>${item.name}</td><td>${item.quantity}</td><td>$${item.priceUsd.toFixed(2)}</td><td>${item.weightKg.toFixed(2)} kg</td><td>${item.calories}</td></tr>`
-    )
+    .map((item) => {
+      const totalCost = item.priceUsd * item.quantity;
+      const totalWeight = item.weightKg * item.quantity;
+      const totalCalories = item.calories * item.quantity;
+      return `<tr><td>${item.name}</td><td>${item.quantity}</td><td>$${totalCost.toFixed(2)}</td><td>${totalWeight.toFixed(2)} kg</td><td>${totalCalories}</td></tr>`;
+    })
     .join("");
   return `
     <table>
-      <thead><tr><th>Product</th><th>Units</th><th>Unit price</th><th>Unit weight</th><th>Unit calories</th></tr></thead>
+      <thead><tr><th>Product</th><th>Units</th><th>Total cost</th><th>Total weight</th><th>Total calories</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <p>
-      <strong>Total calories:</strong> ${recommendation.totalCalories} —
-      <strong>Cost:</strong> $${recommendation.totalCostUsd.toFixed(2)} —
-      <strong>Weight:</strong> ${recommendation.totalWeightKg.toFixed(2)} kg
-    </p>
   `;
 }
 
@@ -64,10 +94,11 @@ async function handleSubmit(event) {
   solveButton.textContent = "Solving…";
 
   try {
+    const payload = collectPayload();
     const response = await fetch("/solve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(collectPayload()),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -80,6 +111,7 @@ async function handleSubmit(event) {
       if (body.status === "SUCCESS") {
         resultContent.innerHTML =
           `<p class="status-success">Solved.</p>` + renderRecommendation(body.recommendation);
+        updateCapacityDashboard(body.recommendation, payload);
       } else {
         resultContent.innerHTML = `<p class="status-failure">${body.message}</p>`;
       }

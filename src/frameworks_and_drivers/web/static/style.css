@@ -1,70 +1,353 @@
-/* Minimal styling — this is a reference implementation, not a design system. */
+/* Design tokens.
+   The palette splits colors by what they mean in the knapsack problem, not
+   just how they look: slate marks the two hard constraints (budget,
+   weight), amber marks the objective being maximized (calories), and
+   moss/rust are the success/failure and in-capacity/over-capacity states. */
+:root {
+  --paper: #f7f6f2;
+  --ink: #1b1d22;
+  --ink-soft: #565a63;
+  --slate: #3e4c6d;
+  --amber: #c98a2e;
+  --line: #e2dfd7;
+  --moss: #3f7d4c;
+  --rust: #b44224;
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
 
 body {
-  font-family: system-ui, sans-serif;
-  max-width: 720px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  color: #1a1a1a;
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  margin: 0;
+  padding: var(--space-5) var(--space-3) var(--space-5);
+}
+
+main {
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+
+.page-header h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .subtitle {
-  color: #555;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  margin: var(--space-2) 0 0;
+  max-width: 46ch;
 }
 
+.section-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 var(--space-3);
+}
+
+/* ---------- Capacity gauges (signature element) ---------- */
+
+.capacity {
+  padding: var(--space-4);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(27, 29, 34, 0.04);
+  position: sticky;
+  top: var(--space-3);
+}
+
+.capacity-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.stat-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--amber);
+}
+
+.gauge + .gauge {
+  margin-top: var(--space-3);
+}
+
+.gauge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-1);
+}
+
+.gauge-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+.gauge-value {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.gauge-track {
+  height: 10px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.gauge-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--slate);
+  border-radius: 999px;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+/* ---------- Form ---------- */
+
 fieldset {
-  margin-bottom: 1.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+legend {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0 var(--space-1);
 }
 
 label {
-  display: inline-block;
-  margin: 0.5rem 1rem 0.5rem 0;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin: var(--space-2) var(--space-3) 0 0;
 }
 
 input[type="number"],
 input[type="text"] {
-  width: 8rem;
-  padding: 0.25rem;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 0.5rem;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 0.25rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--ink);
+  width: 9rem;
+  padding: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--paper);
 }
 
 td input {
   width: 100%;
 }
 
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-3) 0;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Buttons ---------- */
+
 button {
-  padding: 0.5rem 1rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 2px);
+  background: #fff;
+  color: var(--ink);
   cursor: pointer;
 }
 
-#solve-button {
-  margin-top: 1rem;
-  font-weight: bold;
+button:hover {
+  border-color: var(--slate);
 }
 
+.remove-product {
+  color: var(--rust);
+  border-color: transparent;
+  background: transparent;
+  padding: var(--space-1) var(--space-2);
+}
+
+#solve-button {
+  margin-top: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 700;
+  color: #fff;
+  background: var(--amber);
+  border-color: var(--amber);
+}
+
+#solve-button:hover {
+  background: #b17a26;
+  border-color: #b17a26;
+}
+
+#solve-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Focus states ---------- */
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--slate);
+  outline-offset: 2px;
+}
+
+/* ---------- Result ---------- */
+
 #result {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid #ccc;
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+  animation: reveal 0.25s ease;
+}
+
+#result h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+#result table {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .status-success {
-  color: #0a7a2f;
+  color: var(--moss);
+  font-weight: 600;
 }
 
 .status-failure {
-  color: #a10000;
+  color: var(--rust);
+  font-weight: 600;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gauge-fill,
+  #result {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ---------- Layout ----------
+   .layout's DOM order is [capacity, form] so that on mobile — where it
+   collapses to a plain single column — the gauges naturally land first,
+   sticky under the header, ahead of the (potentially long) product table.
+   On desktop, explicit grid-column placement puts the gauges in a right
+   rail beside the form regardless of that DOM order. */
+
+.layout {
+  margin-top: var(--space-5);
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 820px) {
+  .layout {
+    grid-template-columns: 1fr 300px;
+    align-items: start;
+  }
+
+  .capacity {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  #solve-form {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 819px) {
+  body {
+    padding: var(--space-4) var(--space-2);
+  }
+
+  #products-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
 }

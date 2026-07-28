@@ -10,9 +10,22 @@ WHY THIS EXISTS:
 """
 
 from __future__ import annotations
+import math
 from dataclasses import dataclass, field
 from domain.product import Product
 from domain.request import Request
+
+
+def _exceeds_with_tolerance(value: float, limit: float) -> bool:
+    """True if value is greater than limit beyond floating-point noise.
+
+    Summing many small floats (see __post_init__ below) can overshoot an
+    exact limit by a few ULPs (e.g. 25.000000000000004 vs 25.0) even though
+    the true total is exactly at the limit. math.isclose() absorbs that
+    noise so a mathematically-exact match is never rejected, while a real
+    overspend/overweight still is.
+    """
+    return value > limit and not math.isclose(value, limit)
 
 
 @dataclass(frozen=True)
@@ -66,7 +79,7 @@ class Recommendation:
         object.__setattr__(self, "total_weight_kg", weight)
         # Re-validate against the originating Request's limits so a Recommendation that
         # overspends the budget or exceeds the weight limit can never exist.
-        if cost > self.request.max_budget_usd:
+        if _exceeds_with_tolerance(cost, self.request.max_budget_usd):
             raise ValueError(f"total cost {cost} exceeds budget {self.request.max_budget_usd}")
-        if weight > self.request.max_weight_kg:
+        if _exceeds_with_tolerance(weight, self.request.max_weight_kg):
             raise ValueError(f"total weight {weight} exceeds limit {self.request.max_weight_kg}")

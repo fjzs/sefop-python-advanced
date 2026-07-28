@@ -70,3 +70,34 @@ def test__recommendation__given_total_weight_exceeds_limit__raises_value_error(b
     # ACT / ASSERT
     with pytest.raises(ValueError, match="weight"):
         Recommendation(request=tight_request, quantities={chips: 1})
+
+
+def test__recommendation__given_weight_exactly_at_limit_with_float_noise__does_not_raise():
+    # ARRANGE — 0.1kg x8 + 2.2kg x11 sums to 25.000000000000004 in float
+    # arithmetic: a few ULPs above the mathematically exact 25.0 limit.
+    # Reproduces a reported production bug where a solver-feasible solution
+    # was rejected by this exact boundary case.
+    light = Product(name="light", price_usd=1.0, weight_kg=0.1, calories=10)
+    heavy = Product(name="heavy", price_usd=1.0, weight_kg=2.2, calories=10)
+    tight_request = Request(max_weight_kg=25.0, max_budget_usd=1000.0, products=[light, heavy])
+
+    # ACT
+    rec = Recommendation(request=tight_request, quantities={light: 8, heavy: 11})
+
+    # ASSERT — construction succeeded and holds the requested quantities
+    assert rec.quantities == {light: 8, heavy: 11}
+
+
+def test__recommendation__given_cost_exactly_at_limit_with_float_noise__does_not_raise():
+    # ARRANGE — 0.1usd x4 + 0.8usd x12 sums to 10.000000000000002 in float
+    # arithmetic: a few ULPs above the mathematically exact 10.0 budget.
+    # Same class of bug as the weight case above, on the budget check.
+    cheap = Product(name="cheap", price_usd=0.1, weight_kg=1.0, calories=10)
+    pricey = Product(name="pricey", price_usd=0.8, weight_kg=1.0, calories=10)
+    tight_request = Request(max_weight_kg=1000.0, max_budget_usd=10.0, products=[cheap, pricey])
+
+    # ACT
+    rec = Recommendation(request=tight_request, quantities={cheap: 4, pricey: 12})
+
+    # ASSERT — construction succeeded and holds the requested quantities
+    assert rec.quantities == {cheap: 4, pricey: 12}

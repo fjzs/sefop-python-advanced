@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from frameworks_and_drivers.web.routes import router
 
-app = FastAPI(title="SEFOP Knapsack Solver")
+app = FastAPI(title="Knapsack Solver Service")
 app.include_router(router)
 
 # Registered after the API routes: Starlette matches routes in registration

@@ -2,48 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>SEFOP Knapsack Solver</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Knapsack Solver Service</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main>
-    <h1>SEFOP Knapsack Solver</h1>
-    <p class="subtitle">
-      Given a budget and a weight limit, pick the combination of products that maximizes total calories.
-    </p>
+    <header class="page-header">
+      <h1>Knapsack Solver Service</h1>
+      <p class="subtitle">
+        Pick the products that pack the most calories into a budget and a weight limit.
+      </p>
+    </header>
 
-    <form id="solve-form">
-      <fieldset>
-        <legend>Limits</legend>
-        <label>
-          Max budget (USD)
-          <input type="number" id="max-budget-usd" step="0.01" min="0.01" value="10" required />
-        </label>
-        <label>
-          Max weight (kg)
-          <input type="number" id="max-weight-kg" step="0.01" min="0.01" value="5" required />
-        </label>
-      </fieldset>
+    <div class="layout">
+      <aside class="capacity" aria-label="Capacity">
+        <h2 class="section-label">Capacity</h2>
+        <div class="capacity-stat">
+          <span class="stat-label">Total calories</span>
+          <span class="stat-value" id="capacity-calories">—</span>
+        </div>
+        <div class="gauge" id="gauge-budget">
+          <div class="gauge-row">
+            <span class="gauge-name">Budget</span>
+            <span class="gauge-value" id="gauge-budget-value">— / —</span>
+          </div>
+          <div class="gauge-track">
+            <div class="gauge-fill" id="gauge-budget-fill"></div>
+          </div>
+        </div>
+        <div class="gauge" id="gauge-weight">
+          <div class="gauge-row">
+            <span class="gauge-name">Weight</span>
+            <span class="gauge-value" id="gauge-weight-value">— / —</span>
+          </div>
+          <div class="gauge-track">
+            <div class="gauge-fill" id="gauge-weight-fill"></div>
+          </div>
+        </div>
+      </aside>
 
-      <fieldset>
-        <legend>Products</legend>
-        <table id="products-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Price (USD)</th>
-              <th>Weight (kg)</th>
-              <th>Calories</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="products-body"></tbody>
-        </table>
-        <button type="button" id="add-product">+ Add product</button>
-      </fieldset>
+      <form id="solve-form">
+        <fieldset>
+          <legend>Limits</legend>
+          <label>
+            Max budget (USD)
+            <input type="number" id="max-budget-usd" step="0.01" min="0.01" value="10" required />
+          </label>
+          <label>
+            Max weight (kg)
+            <input type="number" id="max-weight-kg" step="0.01" min="0.01" value="5" required />
+          </label>
+        </fieldset>
 
-      <button type="submit" id="solve-button">Solve</button>
-    </form>
+        <fieldset>
+          <legend>Products</legend>
+          <table id="products-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Price (USD)</th>
+                <th>Weight (kg)</th>
+                <th>Calories</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="products-body"></tbody>
+          </table>
+          <button type="button" id="add-product">+ Add product</button>
+        </fieldset>
+
+        <button type="submit" id="solve-button">Solve</button>
+      </form>
+    </div>
 
     <section id="result" hidden>
       <h2>Result</h2>

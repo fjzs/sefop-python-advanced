@@ -316,6 +316,23 @@ CLI for those.
 ### Run via Docker
 ```bash
 docker build -t sefop-web .
+```
+Reads the `Dockerfile` in the repo root and packages the app — Python,
+dependencies, source code, and sample data — into a container image named
+`sefop-web` (`-t` tags the image with that name). This step only needs to be
+run once: it produces an image that's stored locally by Docker, and every
+`docker run` afterwards reuses it without rebuilding. Re-run `docker build`
+only when something it copies changes — `Dockerfile`, `requirements.txt`,
+`pyproject.toml`, `src/`, or `data/` — so the image picks up the update.
+
+```bash
 docker run -p 8000:8000 sefop-web
 ```
-Then open `http://localhost:8000`.
+Starts a new container from the `sefop-web` image and publishes it to your
+machine: `-p 8000:8000` maps port 8000 on your host to port 8000 inside the
+container, which is the port Uvicorn listens on (see the `CMD` line in the
+`Dockerfile`). Unlike `build`, this command is meant to be run every time you
+want to start the app — each run creates a fresh, independent container from
+the same image.
+
+Then open http://localhost:8000 and you will see the front-end of the project.
