@@ -30,6 +30,12 @@ on:
   push:
     branches: [main]
 
+# Least-privilege default for GITHUB_TOKEN: every job here only needs to
+# check out code (via the reused CI workflows) or POST to an external URL
+# (the deploy job) — none of them need to write anything back to the repo.
+permissions:
+  contents: read
+
 jobs:
   # Each of these calls an existing CI workflow file as a reusable job (its
   # `workflow_call` trigger, added alongside its own push/pull_request
