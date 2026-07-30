@@ -39,6 +39,10 @@ on:
   pull_request:
     branches: [main]
 
+  # Lets cd-deploy.yml call this workflow as a job (with a real `needs`
+  # dependency) instead of racing a separate `workflow_run` event.
+  workflow_call:
+
 # If a new commit is pushed to the same branch/PR while a previous run is
 # still in progress, cancel the older run instead of letting both finish.
 # Without this, quick successive pushes (or a force-push) would queue up

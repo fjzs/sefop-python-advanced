@@ -1,0 +1,71 @@
+# =============================================================================
+# CD — Deploy
+# =============================================================================
+# GitHub Actions workflow that ships sefop-web to Render, but only after all
+# 4 existing CI checks pass on main.
+#
+# Why a parent workflow calling the CI workflows as jobs (`uses: ./...`),
+# instead of listening for their `workflow_run` events?
+#   `workflow_run` fires once per triggering workflow, so 4 separate
+#   `workflow_run` listeners would race each other with no shared knowledge
+#   of whether the *other* 3 also passed for this exact commit. Calling them
+#   as reusable jobs with `uses:` lets `deploy` express a real `needs: [...]`
+#   dependency on all 4 in one place.
+#
+# How does this actually trigger a deploy?
+#   Render's Auto-Deploy is turned OFF for this service (see
+#   DEPLOYMENT_GUIDE.md, step 1.4) — the only thing that can trigger a Render
+#   deploy is a POST to its Deploy Hook URL, which the `deploy` job does here.
+#   Render then handles the build, the zero-downtime swap, and the
+#   health-check-gated rollback itself; this workflow's job is only to gate
+#   *when* that hook fires.
+# =============================================================================
+
+name: CD — Deploy
+
+# Only pushes to main can trigger a deploy — never a pull request. A PR
+# should only ever run CI (via its own push/pull_request triggers on the
+# CI workflows), not ship anything.
+on:
+  push:
+    branches: [main]
+
+# Least-privilege default for GITHUB_TOKEN: every job here only needs to
+# check out code (via the reused CI workflows) or POST to an external URL
+# (the deploy job) — none of them need to write anything back to the repo.
+permissions:
+  contents: read
+
+jobs:
+  # Each of these calls an existing CI workflow file as a reusable job (its
+  # `workflow_call` trigger, added alongside its own push/pull_request
+  # triggers). This does not skip or duplicate CI — it's the exact same
+  # workflow file already gating PRs, just also gating this deploy.
+  code-style:
+    uses: ./.github/workflows/ci-code-style.yml
+
+  unit-tests:
+    uses: ./.github/workflows/ci-unit-tests.yml
+
+  integration-tests:
+    uses: ./.github/workflows/ci-integration-tests.yml
+
+  docker-build:
+    uses: ./.github/workflows/ci-docker-build.yml
+
+  # Only runs once all 4 CI jobs above succeed. If any of them fails, this
+  # job (and therefore the deploy) never runs — main keeps serving whatever
+  # Render already has live.
+  deploy:
+    needs: [code-style, unit-tests, integration-tests, docker-build]
+    runs-on: ubuntu-latest
+    steps:
+      # The entire deploy step: hit Render's Deploy Hook URL. Render does
+      # the build (from the Dockerfile), the zero-downtime swap, and the
+      # health-check-gated rollback on its own — nothing else is needed here.
+      # `--fail` makes curl exit non-zero on a non-2xx response, so a bad or
+      # revoked hook URL shows up as a failed Actions job, not a silent no-op.
+      - name: Trigger Render deploy
+        run: curl --fail -X POST "$RENDER_DEPLOY_HOOK_URL"
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}

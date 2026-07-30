@@ -23,6 +23,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Lets cd-deploy.yml call this workflow as a job (with a real `needs`
+  # dependency) instead of racing a separate `workflow_run` event.
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
