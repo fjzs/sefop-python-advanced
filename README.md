@@ -6,7 +6,6 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/)
 [![CI — Unit Tests](https://github.com/sefop/sefop-python/actions/workflows/ci-unit-tests.yml/badge.svg)](https://github.com/sefop/sefop-python/actions/workflows/ci-unit-tests.yml)
 [![CI — Integration Tests](https://github.com/sefop/sefop-python/actions/workflows/ci-integration-tests.yml/badge.svg)](https://github.com/sefop/sefop-python/actions/workflows/ci-integration-tests.yml)
-[![CI — Docker Build](https://github.com/sefop/sefop-python/actions/workflows/ci-docker-build.yml/badge.svg)](https://github.com/sefop/sefop-python/actions/workflows/ci-docker-build.yml)
 
 ---
 
