@@ -16,8 +16,8 @@
 - [Installation](#installation)
 - [Testing](#Testing)
 - [Code quality](#code-quality)
-- [Usage — CLI](#usage--cli)
-- [Usage — Web app](#usage--web-app)
+- [Usage](#usage)
+- [CI/CD](#cicd)
 
 ---
 
@@ -279,21 +279,26 @@ Configuration lives in `pyproject.toml`'s `[tool.mypy]` section.
 
 ---
 
-## Usage — CLI
+## Usage
 
-### Solve a single knapsack optimization request
+There are two independent ways to use this project — a CLI and a web app — both calling
+into the same `use_cases/` underneath (see [Architecture](#architecture)).
+
+### CLI
+
+#### Solve a single knapsack optimization request
 ```bash
 python -m frameworks_and_drivers.cli solve 1  # solve request from data/1/data.json
 python -m frameworks_and_drivers.cli solve 2  # solve request from data/2/data.json
 python -m frameworks_and_drivers.cli solve 1 --format json  # write the result as JSON instead of CSV
 ```
 
-### Solve every request in a folder
+#### Solve every request in a folder
 ```bash
 python -m frameworks_and_drivers.cli solve-batch data  # solve every request subfolder under data/
 ```
 
-### Check whether a candidate solution is feasible for a request
+#### Check whether a candidate solution is feasible for a request
 ```bash
 python -m frameworks_and_drivers.cli evaluate 1 candidate_solution.json
 ```
@@ -302,9 +307,7 @@ where `candidate_solution.json` maps product name to candidate quantity:
 { "apple": 4, "chocolate": 0 }
 ```
 
----
-
-## Usage — Web app
+### Web app
 
 The web app exposes the same `SolveSingleRequest` use case the CLI's `solve` command
 uses, behind a single `POST /solve` endpoint and a minimal static frontend — a form to
@@ -312,7 +315,7 @@ configure a request (budget, weight limit, and a product table you can add/remov
 to) and a Solve button. `solve-batch` and `evaluate` aren't exposed over HTTP; use the
 CLI for those.
 
-### Run via Docker
+#### Run via Docker
 ```bash
 docker build -t sefop-web .
 ```
@@ -335,3 +338,25 @@ want to start the app — each run creates a fresh, independent container from
 the same image.
 
 Then open http://localhost:8000 and you will see the front-end of the project.
+
+---
+
+## CI/CD
+
+### Continuous Integration (CI)
+
+Four independent workflows (`.github/workflows/ci-*.yml`) run in parallel on every push
+to main and every PR targeting main:
+
+| Workflow | Checks                                                                    |
+|----------|---------------------------------------------------------------------------|
+| `ci-code-style.yml` | Runs formatting and static types                                          |
+| `ci-unit-tests.yml` | Fast unit tests                                                           |
+| `ci-integration-tests.yml` | Slower tests that run the program multiple times end-to-end               |
+| `ci-docker-build.yml` | Builds the `Dockerfile` image and smoke-tests it by hitting `GET /health` |
+
+### Continuous Deployment (CD)
+
+`cd-deploy.yml` runs only on pushes to main (never on a PR).
+1. It calls the four CI workflows
+2. If all of them pass, then it deploys the image to a server (Render on this case) through a "hook".
