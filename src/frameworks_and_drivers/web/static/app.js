@@ -24,6 +24,59 @@ function addProductRow(values) {
 
 document.getElementById("add-product").addEventListener("click", () => addProductRow());
 
+// Random-instance generator: lets a user try larger instances (e.g. above
+// the 50-product heuristic threshold in Orchestrator._max_products_for_mip)
+// without hand-entering rows one at a time.
+
+function randomInRange(min, max, decimals) {
+  const value = Math.random() * (max - min) + min;
+  return Number(value.toFixed(decimals));
+}
+
+function randomIntInRange(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Scales the request's maxWeightKg/maxBudgetUsd to a fraction of the
+// generated products' totals, so the instance stays solvable and
+// non-trivial regardless of how many products were generated.
+const GENERATED_LIMIT_FRACTION = 0.5;
+
+function generateRandomProducts(n) {
+  productsBody.innerHTML = "";
+
+  let totalWeightKg = 0;
+  let totalPriceUsd = 0;
+  for (let i = 1; i <= n; i++) {
+    const priceUsd = randomInRange(0.5, 10.0, 2);
+    const weightKg = randomInRange(0.05, 2.0, 2);
+    const calories = randomIntInRange(10, 800);
+    totalWeightKg += weightKg;
+    totalPriceUsd += priceUsd;
+    addProductRow({ name: `product${i}`, priceUsd, weightKg, calories });
+  }
+
+  document.getElementById("max-weight-kg").value = (totalWeightKg * GENERATED_LIMIT_FRACTION).toFixed(2);
+  document.getElementById("max-budget-usd").value = (totalPriceUsd * GENERATED_LIMIT_FRACTION).toFixed(2);
+}
+
+document.getElementById("generate-products").addEventListener("click", () => {
+  const generateCountInput = document.getElementById("generate-count");
+  // Read the raw string first: Number("") is 0, which would otherwise slip
+  // past the range check below instead of being caught as "empty".
+  const rawValue = generateCountInput.value;
+  const n = Number(rawValue);
+
+  if (rawValue === "" || !Number.isInteger(n) || n < 1 || n > 200) {
+    // Same inline error-display pattern handleSubmit uses for /solve errors.
+    resultContent.innerHTML = `<p class="status-failure">Invalid input: enter a whole number of products between 1 and 200.</p>`;
+    resultSection.hidden = false;
+    return;
+  }
+
+  generateRandomProducts(n);
+});
+
 // Capacity dashboard: reports the *last solved* recommendation, not the
 // draft form. It only ever gets new numbers from handleSubmit's SUCCESS
 // branch below, so editing the limits or the product rows never moves it.
