@@ -1,11 +1,12 @@
 # SEFOP - Python Advanced: Decision-Support System as a Web Application
 
-**Reference implementation of [SEFOP](https://github.com/sefop) for Python**
+**Advanced implementation of [SEFOP](https://github.com/sefop) for Python**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue)](https://www.python.org/)
-[![CI — Unit Tests](https://github.com/sefop/sefop-python/actions/workflows/ci-unit-tests.yml/badge.svg)](https://github.com/sefop/sefop-python/actions/workflows/ci-unit-tests.yml)
-[![CI — Integration Tests](https://github.com/sefop/sefop-python/actions/workflows/ci-integration-tests.yml/badge.svg)](https://github.com/sefop/sefop-python/actions/workflows/ci-integration-tests.yml)
+[![CI — Unit Tests](https://github.com/sefop/sefop-python-advanced/actions/workflows/ci-unit-tests.yml/badge.svg)](https://github.com/sefop/sefop-python-advanced/actions/workflows/ci-unit-tests.yml)
+[![CI — Integration Tests](https://github.com/sefop/sefop-python-advanced/actions/workflows/ci-integration-tests.yml/badge.svg)](https://github.com/sefop/sefop-python-advanced/actions/workflows/ci-integration-tests.yml)
+[![CD — Deploy](https://github.com/sefop/sefop-python-advanced/actions/workflows/cd-deploy.yml/badge.svg)](https://github.com/sefop/sefop-python-advanced/actions/workflows/cd-deploy.yml)
 
 ---
 
@@ -232,7 +233,9 @@ pip install -e .
 
 The `-e` flag installs the package in **editable mode**, making your source code directly importable. This is the standard Python development practice — no need to set `PYTHONPATH` or reinstall when you edit code.
 
-**What breaks if you skip this step?** `pytest` still works, since `pyproject.toml` adds `src` to the path just for pytest. But `python -m frameworks_and_drivers.cli solve 1` will fail with an import error — `cli.py` imports `domain`, `use_cases`, etc. as top-level packages, and without the editable install Python has no way to find them under `src/` outside of pytest.
+**What breaks if you skip this step?** `pytest` still works, since `pyproject.toml` adds `src` to the path just for pytest.
+But `python -m frameworks_and_drivers.cli solve 1` will fail with an import error — `cli.py` imports `domain`, `use_cases`, etc. as top-level packages,
+and without the editable install Python has no way to find them under `src/` outside of pytest.
 
 ---
 
@@ -252,10 +255,14 @@ pytest -m "not integration"
 ```bash
 pytest -m integration
 ```
-Each integration test drives the real CLI end-to-end against a pre-built "situation" (`tests/resources/<situation>/`) and checks situation-specific conditions on the observable outcome only — e.g. the expected optimal calories, that an infeasible request exits non-zero and writes no solution, that tied optimal solutions still report the shared optimal total, or that a large instance correctly routes to the heuristic instead of the exact solvers. Formulation correctness (is the MIP model built right?) is checked separately and only at the unit level, by comparing `MipHighsSolutionProvider`'s output against `EnumerationSolutionProvider`'s brute-force ground truth — see `tests/use_cases/solving/optimization/test_providers_agree_with_enumeration.py` — not by diffing a generated `model.lp` against a golden file.
+Each integration test drives the real CLI end-to-end against a pre-built "situation" (`tests/resources/<situation>/`) and checks situation-specific
+conditions on the observable outcome only, such as:
+- The expected optimal calories
+- That an infeasible request exits non-zero and writes no solution
+- That tied optimal solutions still report the shared optimal total
 
-The web app has its own integration tests, `tests/frameworks_and_drivers/web/test_routes.py`, driving the real HTTP surface end-to-end via FastAPI's `TestClient` — no browser, no real network socket, but the same in-process request handling FastAPI uses in production. `tests/adapters/web/` covers the controller, presenter, and in-memory data loader as fast, non-integration unit tests.
-
+The web app has its own integration tests, `tests/frameworks_and_drivers/web/test_routes.py`, driving the real HTTP surface end-to-end via
+FastAPI's `TestClient` — no browser, no real network socket, but the same in-process request handling FastAPI uses in production.
 
 ---
 
@@ -358,17 +365,17 @@ to main and every PR targeting main, plus a CodeQL security scan configured sepa
 in the repo's Settings → Code security (no workflow file, so it also runs on a weekly
 schedule):
 
-| Workflow                   | Purpose                                                                                                                                                                          |
-|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `ci-code-style.yml`        | Formatting and static types check                                                                                                                                                |
-| `ci-unit-tests.yml`        | Fast unit tests                                                                                                                                                                  |
-| `ci-integration-tests.yml` | Slower tests that run the program multiple times end-to-end                                                                                                                      |
-| `ci-docker-build.yml`      | Builds the `Dockerfile` image and smoke-tests it by hitting `GET /health`                                                                                                        |
+| Workflow                   | Purpose                                                                                      |
+|----------------------------|----------------------------------------------------------------------------------------------|
+| `ci-code-style.yml`        | Formatting and static types check                                                            |
+| `ci-unit-tests.yml`        | Fast unit tests                                                                              |
+| `ci-integration-tests.yml` | Slower tests that run the program multiple times end-to-end                                  |
+| `ci-docker-build.yml`      | Builds the `Dockerfile` image and smoke-tests it by hitting `GET /health`                    |
 | GitHub CodeQL              | Static analysis for security issues (e.g. injection, hardcoded credentials) across languages |
 
 ### Continuous Deployment (CD)
 
 `cd-deploy.yml` runs only on pushes to main (never on a PR).
-1. It calls the four CI workflows
-2. If all of them pass, then it deploys the image to a server (Render on this case) through a "hook".
-3. The new version should be ready at the website.
+1. It calls the four CI workflows.
+2. If all of them pass, then it sends a signal ("hook") to the server (Render) to take the latest `.Dockerfile` and build the image there.
+3. The new version of the website should be updated soon.
