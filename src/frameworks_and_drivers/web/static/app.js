@@ -8,14 +8,28 @@ const solveButton = document.getElementById("solve-button");
 const resultSection = document.getElementById("result");
 const resultContent = document.getElementById("result-content");
 
+// Every value rendered through innerHTML below can ultimately come from
+// user input (a typed product name, or the /solve response echoing one
+// back) - escaping here is what stops a product name like
+// "<img src=x onerror=alert(1)>" from executing as HTML instead of
+// displaying as text.
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function addProductRow(values) {
   const defaults = values || { name: "", priceUsd: "", weightKg: "", calories: "" };
   const row = document.createElement("tr");
   row.innerHTML = `
-    <td><input type="text" class="product-name" value="${defaults.name}" required /></td>
-    <td><input type="number" class="product-price" step="0.01" min="0.01" value="${defaults.priceUsd}" required /></td>
-    <td><input type="number" class="product-weight" step="0.01" min="0.01" value="${defaults.weightKg}" required /></td>
-    <td><input type="number" class="product-calories" step="1" min="1" value="${defaults.calories}" required /></td>
+    <td><input type="text" class="product-name" value="${escapeHtml(defaults.name)}" required /></td>
+    <td><input type="number" class="product-price" step="0.01" min="0.01" value="${escapeHtml(defaults.priceUsd)}" required /></td>
+    <td><input type="number" class="product-weight" step="0.01" min="0.01" value="${escapeHtml(defaults.weightKg)}" required /></td>
+    <td><input type="number" class="product-calories" step="1" min="1" value="${escapeHtml(defaults.calories)}" required /></td>
     <td><button type="button" class="remove-product">Remove</button></td>
   `;
   row.querySelector(".remove-product").addEventListener("click", () => row.remove());
@@ -130,7 +144,7 @@ function renderRecommendation(recommendation) {
       const totalCost = item.priceUsd * item.quantity;
       const totalWeight = item.weightKg * item.quantity;
       const totalCalories = item.calories * item.quantity;
-      return `<tr><td>${item.name}</td><td>${item.quantity}</td><td>$${totalCost.toFixed(2)}</td><td>${totalWeight.toFixed(2)} kg</td><td>${totalCalories}</td></tr>`;
+      return `<tr><td>${escapeHtml(item.name)}</td><td>${item.quantity}</td><td>$${totalCost.toFixed(2)}</td><td>${totalWeight.toFixed(2)} kg</td><td>${totalCalories}</td></tr>`;
     })
     .join("");
   return `
@@ -158,7 +172,7 @@ async function handleSubmit(event) {
       // 422 = Pydantic field-level validation rejected the payload before it
       // ever reached the solver (see schemas.py); show FastAPI's own detail.
       const problem = await response.json();
-      resultContent.innerHTML = `<p class="status-failure">Invalid input: ${JSON.stringify(problem.detail)}</p>`;
+      resultContent.innerHTML = `<p class="status-failure">Invalid input: ${escapeHtml(JSON.stringify(problem.detail))}</p>`;
     } else {
       const body = await response.json();
       if (body.status === "SUCCESS") {
@@ -166,11 +180,11 @@ async function handleSubmit(event) {
           `<p class="status-success">Solved.</p>` + renderRecommendation(body.recommendation);
         updateCapacityDashboard(body.recommendation, payload);
       } else {
-        resultContent.innerHTML = `<p class="status-failure">${body.message}</p>`;
+        resultContent.innerHTML = `<p class="status-failure">${escapeHtml(body.message)}</p>`;
       }
     }
   } catch (error) {
-    resultContent.innerHTML = `<p class="status-failure">Request failed: ${error}</p>`;
+    resultContent.innerHTML = `<p class="status-failure">Request failed: ${escapeHtml(error)}</p>`;
   } finally {
     resultSection.hidden = false;
     solveButton.disabled = false;

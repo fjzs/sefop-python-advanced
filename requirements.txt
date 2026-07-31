@@ -1,7 +1,6 @@
 black==26.5.1
 fastapi==0.140.0
 highspy==1.14.0
-httpx2==2.9.1
 mypy==2.1.0
 ortools==9.15.6755
 pytest==9.0.3
