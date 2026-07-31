@@ -41,13 +41,25 @@ on:
   # Lets cd-deploy.yml call this workflow as a job (with a real `needs`
   # dependency) instead of racing a separate `workflow_run` event.
   workflow_call:
+    inputs:
+      # A reusable workflow's own concurrency group applies to BOTH its
+      # standalone push/PR trigger and a cd-deploy.yml `uses:` call for the
+      # same commit. Without this input to tell the two apart, they'd share
+      # a group and cancel each other — cd-deploy.yml sets this to
+      # "cd-deploy" so its call lands in a different group than the
+      # standalone run.
+      concurrency-suffix:
+        description: "Distinguishes a cd-deploy.yml call from this workflow's own push/PR trigger for concurrency grouping"
+        required: false
+        type: string
+        default: standalone
 
 # If a new commit is pushed to the same branch/PR while a previous run is
 # still in progress, cancel the older run instead of letting both finish.
 # Without this, quick successive pushes (or a force-push) would queue up
 # redundant runs for commits that are already superseded.
 concurrency:
-  group: ci-code-style-${{ github.ref }}
+  group: ci-code-style-${{ inputs.concurrency-suffix || 'standalone' }}-${{ github.ref }}
   cancel-in-progress: true
 
 # What are the jobs in this workflow?

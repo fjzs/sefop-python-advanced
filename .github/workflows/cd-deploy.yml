@@ -13,12 +13,11 @@
 #   dependency on all 4 in one place.
 #
 # How does this actually trigger a deploy?
-#   Render's Auto-Deploy is turned OFF for this service (see
-#   DEPLOYMENT_GUIDE.md, step 1.4) — the only thing that can trigger a Render
-#   deploy is a POST to its Deploy Hook URL, which the `deploy` job does here.
-#   Render then handles the build, the zero-downtime swap, and the
-#   health-check-gated rollback itself; this workflow's job is only to gate
-#   *when* that hook fires.
+#   Render's Auto-Deploy is turned OFF for this service — the only thing that
+#   can trigger a Render deploy is a POST to its Deploy Hook URL, which the
+#   `deploy` job does here. Render then handles the build, the zero-downtime
+#   swap, and the health-check-gated rollback itself; this workflow's job is
+#   only to gate *when* that hook fires.
 # =============================================================================
 
 name: CD — Deploy
@@ -43,15 +42,26 @@ jobs:
   # workflow file already gating PRs, just also gating this deploy.
   code-style:
     uses: ./.github/workflows/ci-code-style.yml
+    # Distinguishes this call's concurrency group from ci-code-style.yml's
+    # own standalone push trigger for this same commit — see that file's
+    # workflow_call.inputs.concurrency-suffix for why this is needed.
+    with:
+      concurrency-suffix: cd-deploy
 
   unit-tests:
     uses: ./.github/workflows/ci-unit-tests.yml
+    with:
+      concurrency-suffix: cd-deploy
 
   integration-tests:
     uses: ./.github/workflows/ci-integration-tests.yml
+    with:
+      concurrency-suffix: cd-deploy
 
   docker-build:
     uses: ./.github/workflows/ci-docker-build.yml
+    with:
+      concurrency-suffix: cd-deploy
 
   # Only runs once all 4 CI jobs above succeed. If any of them fails, this
   # job (and therefore the deploy) never runs — main keeps serving whatever

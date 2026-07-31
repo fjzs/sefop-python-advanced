@@ -354,14 +354,17 @@ request after a while may take up to a minute to wake it back up.
 ### Continuous Integration (CI)
 
 Four independent workflows (`.github/workflows/ci-*.yml`) run in parallel on every push
-to main and every PR targeting main:
+to main and every PR targeting main, plus a CodeQL security scan configured separately
+in the repo's Settings → Code security (no workflow file, so it also runs on a weekly
+schedule):
 
-| Workflow | Checks                                                                    |
-|----------|---------------------------------------------------------------------------|
-| `ci-code-style.yml` | Runs formatting and static types                                          |
-| `ci-unit-tests.yml` | Fast unit tests                                                           |
-| `ci-integration-tests.yml` | Slower tests that run the program multiple times end-to-end               |
-| `ci-docker-build.yml` | Builds the `Dockerfile` image and smoke-tests it by hitting `GET /health` |
+| Workflow                   | Purpose                                                                                                                                                                          |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ci-code-style.yml`        | Formatting and static types check                                                                                                                                                |
+| `ci-unit-tests.yml`        | Fast unit tests                                                                                                                                                                  |
+| `ci-integration-tests.yml` | Slower tests that run the program multiple times end-to-end                                                                                                                      |
+| `ci-docker-build.yml`      | Builds the `Dockerfile` image and smoke-tests it by hitting `GET /health`                                                                                                        |
+| GitHub CodeQL              | Static analysis for security issues (e.g. injection, hardcoded credentials) across languages |
 
 ### Continuous Deployment (CD)
 
