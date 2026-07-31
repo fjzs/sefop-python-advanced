@@ -47,7 +47,7 @@ on:
 # Without this, quick successive pushes (or a force-push) would queue up
 # redundant runs for commits that are already superseded.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-code-style-${{ github.ref }}
   cancel-in-progress: true
 
 # What are the jobs in this workflow?

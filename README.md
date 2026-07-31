@@ -281,10 +281,10 @@ Configuration lives in `pyproject.toml`'s `[tool.mypy]` section.
 
 ## Usage
 
-There are two independent ways to use this project — a CLI and a web app — both calling
-into the same `use_cases/` underneath (see [Architecture](#architecture)).
+There are three independent ways to use this project — a CLI, a locally-run website, and
+a public website.
 
-### CLI
+### 1. CLI
 
 #### Solve a single knapsack optimization request
 ```bash
@@ -307,25 +307,23 @@ where `candidate_solution.json` maps product name to candidate quantity:
 { "apple": 4, "chocolate": 0 }
 ```
 
-### Web app
+The web app (both the local and public website below) exposes the same
+`SolveSingleRequest` use case the CLI's `solve` command uses, behind a single `POST
+/solve` endpoint and a minimal static frontend — a form to configure a request (budget,
+weight limit, and a product table you can add/remove rows to) and a Solve button.
+`solve-batch` and `evaluate` aren't exposed over HTTP; use the CLI for those.
 
-The web app exposes the same `SolveSingleRequest` use case the CLI's `solve` command
-uses, behind a single `POST /solve` endpoint and a minimal static frontend — a form to
-configure a request (budget, weight limit, and a product table you can add/remove rows
-to) and a Solve button. `solve-batch` and `evaluate` aren't exposed over HTTP; use the
-CLI for those.
+### 2. Local website
+
+Run the web app on your own machine through Docker:
 
 #### Run via Docker
 ```bash
 docker build -t sefop-web .
 ```
-Reads the `Dockerfile` in the repo root and packages the app — Python,
-dependencies, source code, and sample data — into a container image named
-`sefop-web` (`-t` tags the image with that name). This step only needs to be
-run once: it produces an image that's stored locally by Docker, and every
-`docker run` afterwards reuses it without rebuilding. Re-run `docker build`
-only when something it copies changes — `Dockerfile`, `requirements.txt`,
-`pyproject.toml`, `src/`, or `data/` — so the image picks up the update.
+- Reads the `Dockerfile` in the repo root and packages the app — Python, dependencies, source code, and sample data — into a container image named `sefop-web` (`-t` tags the image with that name). 
+- This step only needs to be run once: it produces an image that's stored locally by Docker, and every `docker run` afterwards reuses it without rebuilding. Re-run 
+  `docker build` only when something it copies changes — `Dockerfile`, `requirements.txt`, `pyproject.toml`, `src/`, or `data/` — so the image picks up the update.
 
 ```bash
 docker run -p 8000:8000 sefop-web
@@ -338,6 +336,16 @@ want to start the app — each run creates a fresh, independent container from
 the same image.
 
 Then open http://localhost:8000 and you will see the front-end of the project.
+
+### 3. Public website
+
+A live deployment of this same web app, no installation required:
+
+**[sefop-python-advanced.onrender.com](https://sefop-python-advanced.onrender.com)**
+
+This is deployed automatically from `main` — see [CI/CD](#cicd) below. It's hosted on
+Render's free tier, so the instance spins down after periods of inactivity; the first
+request after a while may take up to a minute to wake it back up.
 
 ---
 
@@ -360,3 +368,4 @@ to main and every PR targeting main:
 `cd-deploy.yml` runs only on pushes to main (never on a PR).
 1. It calls the four CI workflows
 2. If all of them pass, then it deploys the image to a server (Render on this case) through a "hook".
+3. The new version should be ready at the website.

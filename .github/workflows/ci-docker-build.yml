@@ -28,7 +28,7 @@ on:
   workflow_call:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-docker-build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
