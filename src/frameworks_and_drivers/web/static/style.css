@@ -226,6 +226,30 @@ button:hover {
   border-color: var(--slate);
 }
 
+.product-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.generate-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.generate-controls label {
+  display: inline;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.generate-controls input[type="number"] {
+  width: 5rem;
+}
+
 .remove-product {
   color: var(--rust);
   border-color: transparent;
